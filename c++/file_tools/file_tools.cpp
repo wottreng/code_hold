@@ -10,8 +10,7 @@
 
 using namespace std;
 
-
-bool file_tools_h::write_string_to_file(std::string data_string, std::string path, std::string file_name) {
+bool file_tools_h::write_string_to_file(const std::string& data_string, std::string path, std::string file_name) {
     if (data_string.length() > 0) {
         string full_path = path + "/" + file_name;
         std::ofstream file(full_path);
