@@ -1,0 +1,16 @@
+[package]
+name = "web-api"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+#rocket = "0.5.0-rc.1"
+chrono = {version="0.4.19"}
+file_tools = {path="./src/libs/file_tools"}
+
+[dependencies.rocket]
+path = "./src/libs/rocket-master/core/lib"
+features = ["json"]
+#note:  run --package web-api --bin web-api

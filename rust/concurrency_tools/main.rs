@@ -11,8 +11,11 @@ fn main() {
     let (tx,rx) = mpsc::channel();
     let tx2 = tx.clone();
 
+    let data0 = vec![1,2,3,4];
+    let data1 = vec![6,7,8,9,10];
+
     thread::spawn(move ||   {
-        let vals = vec![1,2,3,4,5];
+        let vals = data0;
 
         for val in vals {
             tx.send(val).unwrap();
@@ -22,11 +25,11 @@ fn main() {
     });
 
     thread::spawn(move ||   {
-        let vals = vec![6,7,8,9,10];
+        let vals2 = data1;
 
-        for val in vals {
+        for val in vals2 {
             tx2.send(val).unwrap();
-            thread::sleep(Duration::from_secs(1));
+            //thread::sleep(Duration::from_secs(1));
         }
 
     });

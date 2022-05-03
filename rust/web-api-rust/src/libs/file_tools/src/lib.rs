@@ -67,9 +67,11 @@ pub fn write_string_to_file(new_data: &String, path: &String, filename: &String,
         let mut current_data: String = String::new();
         // check if exists
         if check_for_file(&path, &filename){
-            //println!("file exists");
+            println!("file exists");
             current_data = read_string_from_file(path, filename, false);
+            println!("here: {}",current_data);
         }
+        println!("old data: {}\n new data: {}",current_data, new_data);
         let all_data_plus_newline = format!("{}{}\n",current_data,new_data);
         fs::write(&file_path, all_data_plus_newline).unwrap();
     }
