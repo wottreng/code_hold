@@ -54,7 +54,7 @@ def read_list_from_file(path: str = os.getcwd(), filename: str = "dataList.txt")
         print(f"[!] file not found: {filename}")
         return False
 
-def debug_log(data: str, mode: str = "a", log_location=f"os.getcwd()"):
+def debug_log(data: str, mode: str = "a", log_location=os.getcwd()):
     date = datetime.datetime.now()
     dateFormat = date.strftime("%d-%b-%Y %H:%M:%S")
     with open(f"{log_location}/debug_log.txt", mode) as log:

@@ -1,4 +1,4 @@
-package main
+package file_tools
 
 import (
 	"fmt"
@@ -6,13 +6,13 @@ import (
 	"os"
 )
 
-func main() {
+func Ft_testing() {
 	fmt.Println("[*] start file_tools testing")
 	//
 	data := "test 123"
 	path := "/tmp"
 	file_name := "go_test.txt"
-	status := write_string_to_file(data, path, file_name)
+	status := Write_string_to_file(data, path, file_name)
 	if status == true {
 		fmt.Println("[-->] writing complete ✓")
 	} else {
@@ -41,7 +41,7 @@ func read_string_from_file(path string, file_name string) string {
 	return string_data
 }
 
-func write_string_to_file(data_string string, path string, file_name string) bool {
+func Write_string_to_file(data_string string, path string, file_name string) bool {
 	absolute_path := path + "/" + file_name
 	file, err := os.Create(absolute_path)
 
@@ -57,6 +57,32 @@ func write_string_to_file(data_string string, path string, file_name string) boo
 	}(file)
 
 	_, err2 := file.WriteString(data_string + "\n")
+
+	if err2 != nil {
+		log.Fatal(err2)
+	}
+
+	//fmt.Println("done")
+	return true
+}
+
+// function for writing data to file
+func Write_data_to_file(data []byte, path string, file_name string) bool {
+	absolute_path := path + "/" + file_name
+	file, err := os.Create(absolute_path)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(file)
+
+	_, err2 := file.Write(data)
 
 	if err2 != nil {
 		log.Fatal(err2)
