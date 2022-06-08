@@ -30,3 +30,9 @@ def remove_directory(directory_path) -> None:
         for name in dirs:
             os.rmdir(os.path.join(root, name))
     os.rmdir(directory_path)
+
+# return ordered list all files with a given extension in a directory
+def list_files_with_extension(directory_path, extension) -> list:
+    file_list = [os.path.join(directory_path, file) for file in os.listdir(directory_path) if file.endswith(extension)]
+    file_list.sort()
+    return file_list

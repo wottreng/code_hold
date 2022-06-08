@@ -1,2 +1,10 @@
 # code_hold
-repo for modules and libs
+repo for standard scripts, functions, modules and libs
+
+## Languages
+*bash
+*python
+*c++
+*matlab
+*go
+*rust
