@@ -1,14 +1,14 @@
-import os
-import datetime
-import json
-import ast
-from system_utils import *
-
 '''
 module for reading and writing data
 Version 1.5
 written by Mark Wottreng
 '''
+
+import os
+import datetime
+import json
+import ast
+from system_utils import *
 
 
 def write_string_to_file(data: str, path: str, filename: str, method: str = "w") -> bool:
