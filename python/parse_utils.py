@@ -1,16 +1,15 @@
-'''
+"""
 Purpose:
     * functions for aggressively parsing of input data
-    * more specificly log files where there is no standard formatting
+    * more specifically log files where there is no standard formatting
 I/O: function specific
-Testing: see main function below
+Testing: see main function at bottom of file
 Depends on: system_utils.py (in this repo)
-Revision: 1.0
+Revision: 1.1
 Language: Python 3.8
-Author: Mark Wottreng
-'''
+Author: Mark Wottreng, mwottren@ford.com
+"""
 
-# parse string for timestamp
 import re
 
 
@@ -76,10 +75,12 @@ def find_substring(input_string: str, substring: str) -> (bool, str):
     if input_string.find(substring) != -1:
         return True, substring
     # stage 2: try to find lowercase substring
-    input_string = input_string.lower()
-    substring = substring.lower()
-    if input_string.find(substring) != -1:
-        return True, substring
+    input_string_lower = input_string.lower()
+    substring_lower = substring.lower()
+    input_string_location = input_string_lower.find(substring_lower)
+    if input_string_location != -1:
+        substring_actual = input_string[input_string_location:input_string_location + len(substring)]
+        return True, substring_actual
     # substring not found
     return False, ""
     # --- end of function --- #
@@ -87,26 +88,35 @@ def find_substring(input_string: str, substring: str) -> (bool, str):
 
 # parse string for variable values, returns list of values for variable_name
 def parse_string_for_values(input_string: str, variable_name: str,
-                            number_of_returned_values: int = 1, negative_values_possible: bool = True) -> list:
+                            number_of_returned_values: int = 1,
+                            negative_values_possible: bool = True) -> list:
 
     return_values: list = []
     # find variable name in string
-    variable_found, variable_name = find_substring(input_string, variable_name)
+    variable_found, actual_variable_name = find_substring(input_string, variable_name)
     if variable_found is False:
         return return_values  # empty list
     #
-    split_string: list = input_string.split(variable_name)
+    split_string: list = input_string.split(actual_variable_name)
     #
     if number_of_returned_values == 1:
-        substring = split_string[1][0:15]
+        substring = ""
+        if len(split_string[1]) > 15:
+            substring = split_string[1][0:15]
+        else:
+            substring = split_string[1][0:len(split_string[1])]
         scrubbed_substring: str = remove_non_numeric_characters(substring, negative_values_possible)
         if "." in scrubbed_substring:
             return_values.append(float(scrubbed_substring))
         else:
             return_values.append(int(scrubbed_substring))
         return return_values
+    #
     else:  # number_of_returned_values > 1
-        substring = split_string[1][0:30]
+        if len(split_string[1]) > 15:
+            substring = split_string[1][0:30]
+        else:
+            substring = split_string[1][0:len(split_string[1])]
         split_scrubbed_substring: list = substring.split(",")  # ASSUMPTION: variable values are separated by commas
         for substring in split_scrubbed_substring:
             scrubbed_substring: str = remove_non_numeric_characters(substring, negative_values_possible)
@@ -137,10 +147,10 @@ def find_lines_that_match_an_iterable_variable_name(input_list: list, variable_n
     for line in filtered_list:
         _, actual_variable_name = find_substring(line, variable_name)
         variable_name_value = parse_string_for_values(line, actual_variable_name, 1, False)
-        variable_name_combined = actual_variable_name + "-" + str(variable_name_value[0])
+        variable_name_combined = (actual_variable_name + "-" + str(variable_name_value[0])).lower()
         if variable_name_combined not in list_of_all_different_variable_values:
             list_of_all_different_variable_values.append(variable_name_combined)
-            return_dict[variable_name_combined] = []
+            return_dict[variable_name_combined] = []  # initiate list
         return_dict[variable_name_combined].append(line)
     #
     return return_dict
@@ -171,22 +181,22 @@ def remove_non_numeric_characters(input_string: str, negative_values_possible: b
 if __name__ == "__main__":
     test_list = [
         "some_function_name.234324   main  0 4 211.22.0-0 D: [stuff] Stage-1: long = 9.56, lat = 1.35, xy {-1.2, 10.3} tracking loc: 145",
-        "Jan 01 00:01:14 some_function_name.234324  blahblah main  0 4 211.22.0-0 D: [stuff] stage-2 : long = -4.3, lat = 5.4, xy = {3.24,-1.2} tracking loc: 234",
-        "Jan 01 00:01:14.713 some_function_name.234324   main  0 4 211.22.0-0 D: [stuff] Stage3: long = 5.234, lat = 6.012, xy {-1.2, 10.3} tracking loc: 145",
+        "Jan 01 00:01:14 some_function_name.234324  blahblah main  0 4 211.22.0-0 D: [stuff] stage-2 : Long = -4.3, lat = 5.4, xy = {3.24,-1.2} tracking loc: 234",
+        "Jan 01 00:01:14.713 some_function_name.234324   main  0 4 211.22.0-0 D: [stuff]  long = 5.234, lat = 6.012, xy {-1.2, 10.3} tracking loc: 145",
         "some_function_name.234324   main  0 4 211.22.0-0 D: [stuff] Stage-3: long = 0.2, lat = 0.56, xy {0.3, 0.3} tracking loc: 23"
     ]
 
     print("[TEST] parse_string_for_values")
     test_string = test_list[1]
-    variable_found, var_name = find_substring(test_string, "Long")  # True, "long"
+    variable_found, var_name = find_substring(test_string, "long")  # True, "long"
     if variable_found is True:
         print(parse_string_for_values(test_string, var_name))  # [-4.3]
     print("-----------------------------------------------------")
     print("[TEST] parse list for values")
     return_list = parse_string_list_for_variable_values(test_list, ["long", "lat"])
     print(
-        return_list)  # [{'long': [9.56], 'lat': [1.35]}, {'long': [-4.3], 'lat': [5.4]}, {'long': [5.234], 'lat': [6.012]}]
-    print("long value in list: ", return_list[0]["long"][0])  # -4.3
+        return_list)  # [{'long': [9.56], 'lat': [1.35]}, {'long': [-4.3], 'lat': [5.4]}, {'long': [5.234], 'lat': [6.012]}, {'long': [0.2], 'lat': [0.56]}]
+    print("long value in list: ", return_list[0]["long"][0])  # 9.56
     print("-----------------------------------------------------")
     print("[TEST] parse string for timestamp")
     test_string = test_list[2]
@@ -208,10 +218,10 @@ if __name__ == "__main__":
     print("-----------------------------------------------------")
     print("[TEST] find all lines that match a list of substring")
     substring_dict: dict = find_lines_that_match_substring_list(test_list, ["Stage-1", "stage-2", "Stage3"])
-    print(substring_dict)  # {'Stage-1': [1], 'stage-2': [1], 'Stage3': [1]}
+    print(substring_dict)  # {'Stage-1': [1], 'stage-2': [1], 'Stage3': [0]}
     print(substring_dict["Stage-1"])  # ["<line content>"]
     print("-----------------------------------------------------")
     print("[TEST] find all lines that match a iterable variable name")
-    variable_name_dict: dict = find_lines_that_match_an_iterable_variable_name(test_list, "Stage")
-    print(variable_name_dict)  # {'Stage-1': [1], 'stage-2': [1], 'Stage3': [2]}
+    variable_name_dict: dict = find_lines_that_match_an_iterable_variable_name(test_list, "stage")
+    print(variable_name_dict)  # {'stage-1': [1], 'stage-2': [1], 'stage-3': [1]}
     print("-----------------------------------------------------")
