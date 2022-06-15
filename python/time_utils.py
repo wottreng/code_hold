@@ -23,7 +23,7 @@ def convertEpochTime(epochTime):
     dateFormat = date.strftime("%d-%b-%Y %H:%M:%S")
     return dateFormat
 
-# calculate time in seconds between two timestamps, format: "HH:MM:SS.MMM"
+# calculate time in seconds between two timestamps, format: "HH:MM:SS.mmm"
 def calculate_elapsed_time_seconds(start_timestamp: str, end_timestamp: str):
     start_timestamp_value = datetime.datetime.strptime(start_timestamp, "%H:%M:%S.%f")
     end_timestamp_value = datetime.datetime.strptime(end_timestamp, "%H:%M:%S.%f")
