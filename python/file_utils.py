@@ -79,6 +79,42 @@ def read_list_from_file(path: str, filename: str) -> list:
             dataList.append(line.strip())
     return dataList
 
+def read_list_of_dictionaries_from_file(path: str, filename:str) -> list:
+    dataList: list = []
+    file_path = os.path.join(path, filename)
+    if check_if_file_exists(file_path):
+        print(f"[ERROR] file not found: {filename}")
+        return []
+    # read data from file
+    with open(file_path, "r") as file:
+        data: list = file.readlines()
+        for line in data:
+            dataList.append(ast.literal_eval(line))
+    return dataList
+
+
+# read list of lists from file
+def read_list_of_list_from_file(path: str, filename: str) -> list:
+    dataList: list = []
+    file_path = os.path.join(path, filename)
+    if check_if_file_exists(file_path):
+        print(f"[ERROR] file not found: {filename}")
+        return []
+    # read data from file
+    with open(file_path, "r") as file:
+        data: list = file.readlines()
+        for line in data:
+            dataList.append(line.split(","))
+    return dataList
+
+
+# convert list of string lists to list of float lists ie. [["1.0"],["2.0"]] -> [[1.0],[2.0]]
+def convert_list_of_string_list_to_list_of_float_list(data: list) -> list:
+    newList: list = []
+    for line in data:
+        newList.append([float(x) for x in line])
+    return newList
+
 
 # write string to debug file
 def debug_log(data: str, mode: str = "a", log_location=os.getcwd()) -> bool:
@@ -107,3 +143,10 @@ def read_list_of_dict_from_file(path: str, filename: str) -> list:
         for line in data:
             dataList.append(ast.literal_eval(line))
     return dataList
+
+
+if __name__ == "__main__":
+    test_list = [["1", "2", "3"],["4", "5", "6"]]
+    list_of_float_lists = convert_list_of_strings_to_list_of_floats(test_list)
+    print(list_of_float_lists)
+
