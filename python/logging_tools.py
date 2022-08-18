@@ -1,34 +1,86 @@
 import os
-from timeTools import dateTimeNow, dateNow
+import datetime
+from pathlib import Path
+import inspect
 
-class loggingTools:
-    def __init__(self):
-        self.log_dir = f"{os.getcwd()}/"
-        log_name = f"server-{dateNow()}.log"
-        log_path = f"{self.log_dir}{log_name}"
-        with open(log_path, "w") as log:
-            log.write(F"INFO:{dateTimeNow()}: log init\n")
 
-    def info(self, data:str):
-        log_name = f"server-{dateNow()}.log"
-        log_path = f"{self.log_dir}{log_name}"
-        with open(log_path, "a") as file:
-            file.write(f"INFO:{dateTimeNow()}: {data}\n")
+def init(log_dir: str = ""):
+    date = datetime.date.today()
+    dateFormat = date.strftime("%d-%b-%Y")
+    log_name = f"DATA_{dateFormat}.log"
+    if log_dir == "":
+        log_dir = os.path.join(os.getcwd(), "logs")
+    log_path = os.path.join(log_dir, log_name)
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    if not os.path.exists(log_path):
+        timestamp = dateTime_now()
+        with open(log_path, 'w') as f:
+            f.write(f"[INIT][{timestamp}]\n")
+    return log_path
 
-    def log_warning(self, data:str):
-        log_name = f"server-{dateNow()}.log"
-        log_path = f"{self.log_dir}{log_name}"
-        with open(log_path, "a") as file:
-            file.write(f"WARNING:{dateTimeNow()}: {data}\n")
 
-    def debug(self, data:str):
-        log_name = f"server-{dateNow()}.log"
-        log_path = f"{self.log_dir}{log_name}"
-        with open(log_path, "a") as file:
-            file.write(f"DEBUG:{dateTimeNow()}: {data}\n")
+def dateTime_now() -> str:
+    date = datetime.datetime.now()
+    dateFormat = date.strftime("%d-%b-%Y %H:%M:%S")
+    return dateFormat
 
-    def error(self, data):
-        log_name = f"server-{dateNow()}.log"
-        log_path = f"{self.log_dir}{log_name}"
-        with open(log_path, "a") as file:
-            file.write(f"ERROR:{dateTimeNow()}: {str(data)}\n")
+
+def info(data: str):
+    log_path = init()
+    # file name:
+    frame = inspect.stack()[1]
+    module = inspect.getmodule(frame[0])
+    filename = os.path.basename(module.__file__)  # returns filename where function is called
+    # function name:
+    caller_name = inspect.stack()[1][3]
+    # timestamp:
+    timestamp = dateTime_now()
+    #
+    with open(log_path, "a") as file:
+        file.write(f"[{filename}][{caller_name}][INFO][{timestamp}] {data}\n")
+
+
+def warning(data: str):
+    log_path = init()
+    # file name:
+    frame = inspect.stack()[1]
+    module = inspect.getmodule(frame[0])
+    filename = os.path.basename(module.__file__)  # returns filename where function is called
+    # function name:
+    caller_name = inspect.stack()[1][3]
+    # timestamp:
+    timestamp = dateTime_now()
+    #
+    with open(log_path, "a") as file:
+        file.write(f"[{filename}][{caller_name}][WARNING][{timestamp}] {data}\n")
+
+
+def debug(data: str):
+    log_path = init()
+    # file name:
+    frame = inspect.stack()[1]
+    module = inspect.getmodule(frame[0])
+    filename = os.path.basename(module.__file__)  # returns filename where function is called
+    # function name:
+    caller_name = inspect.stack()[1][3]
+    # timestamp:
+    timestamp = dateTime_now()
+    #
+    with open(log_path, "a") as file:
+        file.write(f"[{filename}][{caller_name}][DEBUG][{timestamp}] {data}\n")
+
+
+def error(data):
+    log_path = init()
+    # file name:
+    frame = inspect.stack()[1]
+    module = inspect.getmodule(frame[0])
+    filename = os.path.basename(module.__file__)  # returns filename where function is called
+    # function name:
+    caller_name = inspect.stack()[1][3]
+    # timestamp:
+    timestamp = dateTime_now()
+    #
+    with open(log_path, "a") as file:
+        file.write(f"[{filename}][{caller_name}][ERROR][{timestamp}] {data}\n")
