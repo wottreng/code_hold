@@ -4,12 +4,23 @@ Purpose:
     * parsing log files where there is no standard formatting
 I/O: function specific
 Testing: see main function at bottom of file
-Revision: 1.2
+Revision: 1.3
 Language: Python 3.8
 Author: Mark Wottreng
 """
 
 import re
+import ast
+
+import sys
+from pathlib import Path
+FILE = Path(__file__).resolve()
+ROOT = FILE.parents[0]  # root directory
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))  # add ROOT to PATH
+# ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
+
+from system_utils import * # see system utils: https://github.com/wottreng/code_hold/blob/main/python/system_utils.py
 
 
 def find_line_that_matches_substring(input_list: list, variable_name: str) -> (int, str):
@@ -164,6 +175,32 @@ def parse_string_for_values(input_string: str, variable_name: str,
     # --- end of function --- #
 
 
+def parse_string_for_nonnumerical_value(input_string: str, variable_name: str, possible_values:list) -> str:
+    """
+    * Purpose: parse string for non-numerical variable values
+    :param input_string: any string
+    :param variable_name: string, variable name to be found
+    :return: string, value of variable, if not found, an empty string will be returned
+    """
+    # find variable name in string
+    input_string_lower = input_string.lower()
+    variable_found, actual_variable_name = find_substring(input_string_lower, variable_name)
+    if variable_found is False:
+        return ""
+    #
+    split_string: list = input_string_lower.split(actual_variable_name)
+    #
+    substring = ""
+    if len(split_string[1]) > 15:
+        substring = split_string[1][0:15]
+    else:
+        substring = split_string[1][0:len(split_string[1])]
+    for possible_value in possible_values:
+        if find_substring(substring, possible_value)[0] is True:
+            return possible_value
+    return ""
+    # --- end of function --- #
+
 def find_lines_that_match_substring_list(input_list: list, substring_list: list) -> dict:
     """
     * Purpose: find all lines that match a list of substrings
@@ -200,6 +237,7 @@ def find_lines_that_match_an_iterable_variable_name(input_list: list, variable_n
             return_dict[variable_name_combined] = []  # initiate list
         return_dict[variable_name_combined].append(line)
     #
+    if len(return_dict.keys()) == 0: non_fatal_error(f"-> no {variable_name} data found")
     return return_dict
     # --- end of function --- #
 
@@ -213,6 +251,8 @@ def build_list_for_variable(input_list: list, variable_name: str) -> list:
     """
     return_list: list = []
     for variable_dict in input_list:
+        if "{" in variable_dict and "}" in variable_dict:
+            variable_dict = ast.literal_eval(variable_dict)
         return_list.append(variable_dict[variable_name])
     return return_list
     # --- end of function --- #
@@ -248,49 +288,63 @@ if __name__ == "__main__":
     test_list = [
         "00:01:10 some_function_name.234324   main  0 4 211.22.0-0 D: [stuff] Stage-1: long = 9.56, lat = 1.35, xy {-1.2, 10.3} tracking loc: 145",
         "Jan 01 00:01:14 some_function_name.234324  blahblah main  0 4 211.22.0-0 D: [stuff] stage-2 : Long = -4.3, lat = 5.4, xy = {3.24,-1.2} tracking loc: 234",
-        "Jan 01 00:01:14.713 some_function_name.234324   main  0 4 211.22.0-0 D: [stuff]  long = 5.234, lat = 6.012, xy {-1.2, 10.3} tracking loc: 145",
+        "Jan 01 00:01:14.713 some_function_name.234324   main  0 4 211.22.0-0 D: [stuff] Trailer found: yes {} long = 5.234, lat = 6.012, xy {-1.2, 10.3} tracking loc: 145",
         "00:01:16.45 some_function_name.234324   main  0 4 211.22.0-0 D: [stuff] Stage-3: long= 0.2, lat = 0.56, xy {0.3, 0.3} tracking loc: 23"
     ]
 
     print("[TEST] parse_string_for_values")
     test_string = test_list[1]
     variable_found, var_name = find_substring(test_string, "long")  # True, "long"
-    if variable_found is True:
-        print(parse_string_for_values(test_string, var_name))  # [-4.3]
+    print("[PASSED]") if variable_found is True else print("[FAILED]")
+    # if variable_found is True:
+    #     print(parse_string_for_values(test_string, var_name))  # [-4.3]
     print("-----------------------------------------------------")
     print("[TEST] parse list for values")
     return_list = parse_string_list_for_variable_values(test_list, ["long", "lat"])
-    print(return_list)  #  [{'long': 9.56, 'lat': 1.35}, {'long': -4.3, 'lat': 5.4}, {'long': 5.234, 'lat': 6.012}, {'long': 0.2, 'lat': 0.56}]
-    print("long value in list: ", return_list[0]["long"])  # 9.56
+    # print(return_list)  #  [{'long': 9.56, 'lat': 1.35}, {'long': -4.3, 'lat': 5.4}, {'long': 5.234, 'lat': 6.012}, {'long': 0.2, 'lat': 0.56}]
+    # print("long value in list: ", return_list[0]["long"])  # 9.56
+    print("[PASSED]") if return_list[0]["long"] == 9.56 else print("[FAILED]")
     print("-----------------------------------------------------")
     print("[TEST] parse string for timestamp")
     test_string = test_list[2]
     timestamp = parse_string_for_timestamp(test_string)
-    print("timestamp: " + timestamp)  # "00:01:14.713"
+    # print("timestamp: " + timestamp)  # "00:01:14.713"
+    print("[PASSED]") if timestamp == "00:01:14.713" else print("[FAILED]")
     print("-----------------------------------------------------")
     print("[TEST] parse string for multiple values")
     test_string = test_list[0]
-    print(parse_string_for_values(test_string, "xy", number_of_returned_values=2))  # [-1.2, 10.3]
+    # print(parse_string_for_values(test_string, "xy", number_of_returned_values=2))  # [-1.2, 10.3]
+    print("[PASSED]") if parse_string_for_values(test_string, "xy", number_of_returned_values=2) == [-1.2, 10.3] else print("[FAILED]")
     print("-----------------------------------------------------")
     print("[TEST] find line with first timestamp")
     line_number, timestamp = find_first_line_that_has_a_timestamp(test_list)
-    print("line number: ", line_number)  # 1
-    print("timestamp: ", timestamp)  # "00:01:14"
+    # print(f"line number: {line_number}, timestamp: {timestamp}")
+    print("[PASSED]") if line_number == 0 and timestamp == "00:01:10" else print("[FAILED]")
     print("-----------------------------------------------------")
     print("[TEST] find first line that matches a substring")
     line_number, line = find_line_that_matches_substring(test_list, "blahblah")
-    print("line number: ", line_number)  # 1
+    # print("line number: ", line_number)  # 1
+    print("[PASSED]") if line_number == 1 else print("[FAILED]")
     print("-----------------------------------------------------")
     print("[TEST] find all lines that match a list of substring")
     substring_dict: dict = find_lines_that_match_substring_list(test_list, ["Stage-1", "stage-2", "Stage3"])
-    print(substring_dict)  # {'Stage-1': [1], 'stage-2': [1], 'Stage3': [0]}
-    print(substring_dict["Stage-1"])  # ["<line content>"]
+    # print(substring_dict)  # {'Stage-1': [1], 'stage-2': [1], 'Stage3': [0]}
+    # print(substring_dict["Stage-1"])  # ["<line content>"]
+    print("[PASSED]") if substring_dict["Stage-1"] == ["00:01:10 some_function_name.234324   main  0 4 211.22.0-0 D: [stuff] Stage-1: long = 9.56, lat = 1.35, xy {-1.2, 10.3} tracking loc: 145"] else print("[FAILED]")
     print("-----------------------------------------------------")
     print("[TEST] find all lines that match a iterable variable name")
     variable_name_dict: dict = find_lines_that_match_an_iterable_variable_name(test_list, "stage")
-    print(variable_name_dict)  # {'stage-1': [1], 'stage-2': [1], 'stage-3': [1]}
+    # print(variable_name_dict)  # {'stage-1': [1], 'stage-2': [1], 'stage-3': [1]}
+    print("[PASSED]") if variable_name_dict["stage-1"] == ["00:01:10 some_function_name.234324   main  0 4 211.22.0-0 D: [stuff] Stage-1: long = 9.56, lat = 1.35, xy {-1.2, 10.3} tracking loc: 145"] else print("[FAILED]")
     print("-----------------------------------------------------")
     print("[TEST] build list for variable from list of dictionaries")
     variable_list = build_list_for_variable(return_list, "long")
-    print(variable_list)  # [9.56, -4.3, 5.234, 0.2]
+    # print(variable_list)  # [9.56, -4.3, 5.234, 0.2]
+    print("[PASSED]") if variable_list == [9.56, -4.3, 5.234, 0.2] else print("[FAILED]")
     print("-----------------------------------------------------")
+    print("[TEST] find non-numeric variable value")
+    test_string = test_list[2]
+    variable_value = parse_string_for_nonnumerical_value(test_string, "Trailer found", ["yes", "no"])
+    # print(variable_value)  # "yes"
+    print("[PASSED]") if variable_value == "yes" else print("[FAILED]")
+    # --- end of test --- #
