@@ -37,6 +37,12 @@ def convert_list_of_strings_to_list_of_ints(list_to_convert: list) -> list:
 def convert_nested_list_of_strings_to_nested_list_of_ints(list_to_convert: list) -> list:
     return [[int(x) for x in y] for y in list_to_convert]
 
+# function to check for key in list of dictionaries. key needs to exist in all dictionaries
+def check_for_key_in_list_of_dictionaries(list_of_dictionaries: list, key_to_check: str) -> bool:
+    return all(key_to_check in dictionary for dictionary in list_of_dictionaries)
+
+
+
 
 if __name__ == "__main__":
     print("[TEST] testing functions")
@@ -61,4 +67,9 @@ if __name__ == "__main__":
     test_list = [["1", "2", "3"], ["4", "5", "6"], ["-7", "-8", "9"], ["10"]]
     converted_list = convert_nested_list_of_strings_to_nested_list_of_ints(test_list)
     print(f"[TEST] converted list of ints: {converted_list}")
+    # ----------
+    test_list = [{"a": 1, "b": 2}, {"a": 3, "b": 4}, {"a": 5, "b": 6}]
+    key_to_check = "a"
+    key_exists = check_for_key_in_list_of_dictionaries(test_list, key_to_check)
+    print(f"[TEST] key exists: {key_exists}")
     # ----------
