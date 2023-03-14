@@ -1,4 +1,5 @@
 import os
+import sys
 
 
 # check if folder exists
@@ -59,3 +60,35 @@ def fatal_error(message: str, stack_trace_function=None) -> None:
 
 def non_fatal_error(message: str, stack_trace_function=None) -> None:
     print("[ERROR]", stack_trace_function, message)
+
+
+# Import a file with full path specification.
+def import_path(fullpath):
+    path, filename = os.path.split(fullpath)
+    filename, ext = os.path.splitext(filename)
+    sys.path.append(path)
+    module = __import__(filename)
+    del sys.path[-1]
+    return module
+
+
+def return_list_of_files_in_directory_with_extension(directory_path, extensions: tuple) -> list:
+    directory_info: dict = {"files": [], "directory_path": "", "directory_name": "", "subdirectories": []}
+    for file in os.listdir(directory_path):
+        if file.endswith(extensions):
+            directory_info["files"].append(file)
+    directory_info["directory_path"] = directory_path
+    directory_info["directory_name"] = os.path.basename(directory_path)
+    directory_info["subdirectories"] = [os.path.join(directory_path, subdirectory) for subdirectory in os.listdir(directory_path) if os.path.isdir(os.path.join(directory_path, subdirectory))]
+    return directory_info
+
+
+# move through directory recursively and run function for each directory
+def traverse_directory(directory_path: str, function, function_inputs: tuple) -> list:
+    list = []
+    for root, dirs, files in os.walk(directory_path):
+        # print(root, dirs, files)
+        output: list = function(root, function_inputs)
+        if len(output) > 0:
+            list.append(output)
+    return list

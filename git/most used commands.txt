@@ -1,3 +1,0 @@
-git add .  # add all from current directory
-git commit -m "abc"  # commit with message
-git push origin  # push to remote repo

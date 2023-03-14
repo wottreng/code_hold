@@ -1,2 +1,4 @@
 /.idea
 *.idea
+/test
+/test_main.py
